@@ -196,27 +196,9 @@
 				spotLight.shadow.mapSize.height = 2048;
 
 
-				//
-				textureLoader = new THREE.TextureLoader();
-
-				var texture = textureLoader.load( "textures/jack/diffuse.jpg" );
-				var alphaMap = textureLoader.load( "textures/jack/alpha.jpg" );
-
-				var material = new THREE.MeshPhongMaterial( {
-					color: 0xffffff,
-					emissive: 0x010101,
-					shininess: 0,
-					map: texture,
-					alphaMap: alphaMap,
-					transparent: true,
-				} );
-
-				// var geoSphere = new THREE.SphereGeometry( 2, 32, 32 );
-
 				loader = new THREE.GLTFLoader();
-				loader.load( "models/jack.glb", function ( gltf ) {
+				loader.load( "https://cdn.jsdelivr.net/gh/joseluismurillorios/three-jack/models/jack.glb", function ( gltf ) {
 					console.log(gltf);
-					// https://cdn.jsdelivr.net/gh/joseluismurillorios/
 					const model = gltf.scene.getObjectByName('Jack_Daniel_s_Tennessee_2');
 					console.log(model);
 					model.traverse((o) => {

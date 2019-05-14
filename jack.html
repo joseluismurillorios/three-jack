@@ -120,7 +120,7 @@
 
 				//
 				loader = new THREE.GLTFLoader();
-				loader.load( "models/jack.glb", function ( gltf ) {
+				loader.load( "https://cdn.jsdelivr.net/gh/joseluismurillorios/three-jack/models/jack.glb", function ( gltf ) {
 					console.log(gltf);
 					const model = gltf.scene.getObjectByName('Jack_Daniel_s_Tennessee_2');
 					model.traverse((o) => {
