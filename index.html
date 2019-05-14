@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>J A C K</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link href="https://fonts.googleapis.com/css?family=Montserrat:100" rel="stylesheet">
+		<style>
+			@keyframes drawlogo {
+        from{
+          stroke-dashoffset: 1190;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      
+      @keyframes fadeinlogo {
+        0% { opacity:0; }
+        66% { opacity:0; }
+        100% { opacity:1; }
+      }
+
+			html, body, canvas {
+				background:#000;
+				color:#fff;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+			html, body, canvas {
+				position: fixed;
+				padding:0;
+				margin:0;
+				left: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				overflow:hidden;
+			}
+
+			a {	color: #ffffff;	}
+
+			#info {
+				position: absolute;
+				width: 100%;
+				color: #ffffff;
+				padding: 0;
+				font-size: 32px;
+				bottom: 15px;
+				left: 15px;
+				right: 15px;
+				z-index: 1000;
+				letter-spacing: 30px;
+				font-weight: 100;
+				text-align: center;
+				font-family: "Montserrat", sans-serif;
+				opacity: 0.5;
+			}
+
+			#logo {
+				position: absolute;
+				top: 5px;
+				right: 15px;
+				z-index: 1001;
+				opacity: 0.5;
+			}
+			#logo:hover {
+				opacity: 1;
+			}
+			.svg_path {
+				fill: none;
+				stroke: #ffffff;
+				stroke-width: 15;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+				stroke-miterlimit: 10;
+				stroke-dasharray: 1198;
+			}
+			#logo:hover .svg_path {
+				stroke-miterlimit: 10;
+				stroke-dasharray: 1198;
+				animation-duration: 1s;
+				animation-name: drawlogo;
+				animation-iteration-count: 1;
+				animation-direction: alternate;
+			}
+
+			.svg_dot {
+				fill: #d7b88f;
+			}
+			#logo:hover .svg_dot {
+				animation-duration: 1s;
+				animation-name: fadeinlogo;
+				animation-iteration-count: 1;
+				animation-direction: alternate;
+			}
+
+			#webglmessage {
+				background:rgb(200,100,0) !important;
+				color:#fff;
+			}
+
+			#vt { display:none }
+			#vt, #vt a { color:orange; }
+		</style>
+	</head>
+
+	<body>
+		<a href="https://jlmr.herokuapp.com" target="_blank" rel="noreferrer noopener" id="logo">
+			<svg id="svg_loader" version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624 804" height="60">
+				<g>
+					<path class="svg_path" id="img_1" d="M16.3 322.8s150.8-127.2 177.8-137.7 40.1-16.8 39 16.5c-1.4 42.1-75 278-141.3 351-65.8 72.4-102.1 47.7-38.7-43 65.8-94.2 238.5-195.5 238.5-195.5"></path>
+					<path class="svg_path" id="img_2" d="M188 500.2s149.8-275 186.1-306.1c33-28.3 37.5-6 30 45s-52.4 254.6-52.4 254.6 67.4-112.5 121.4-148.4c0 0-26.1 145 47.3 161 52.2 11.4 82.6-75.6 82.6-75.6"></path>
+					<circle class="svg_dot" id="img_3" cx="610.8" cy="520.8" r="11.2"></circle>
+				</g>
+			</svg>
+		</a>
+
+		<div id="info">
+			JACK
+		</div>
+
+		<script src="three.min.js"></script>
+		<script src="GLTFLoader.js"></script>
+
+		<script src="WebGL.js"></script>
+
+		<script>
+
+			if ( WEBGL.isWebGLAvailable() === false ) {
+
+				document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+
+			}
+			var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+			// alert(isMobile);
+			var container, stats, loader;
+
+			var camera, scene, renderer;
+
+			var mesh;
+
+			var textureLoader;
+
+			var spotLight;
+
+			var mouseX = 0;
+			var mouseY = 0;
+
+			var targetX = 0;
+			var targetY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var cameraY = 0;
+			var quaternion;
+			var axisX;
+			var axisY;
+			var last = false;
+			var pressed = false;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				//
+				camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = isMobile ? 1200 : 1000;
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x121212 );
+
+
+
+				quaternion = new THREE.Quaternion;
+				axisY = new THREE.Vector3( 0, 1, 0 );
+				axisX = new THREE.Vector3( 1, 0, 0 );
+
+				// LIGHTS
+				spotLight = new THREE.SpotLight( 0xFFFFFF, 0.7, 0, Math.PI/2 );
+				console.log(spotLight);
+				spotLight.position.set( 0, 0, 1000 );
+				spotLight.position.multiplyScalar( 700 );
+				scene.add( spotLight );
+
+				spotLight.castShadow = true;
+
+				spotLight.shadow.mapSize.width = 2048;
+				spotLight.shadow.mapSize.height = 2048;
+
+
+				//
+				textureLoader = new THREE.TextureLoader();
+
+				var texture = textureLoader.load( "textures/jack/diffuse.jpg" );
+				var alphaMap = textureLoader.load( "textures/jack/alpha.jpg" );
+
+				var material = new THREE.MeshPhongMaterial( {
+					color: 0xffffff,
+					emissive: 0x010101,
+					shininess: 0,
+					map: texture,
+					alphaMap: alphaMap,
+					transparent: true,
+				} );
+
+				// var geoSphere = new THREE.SphereGeometry( 2, 32, 32 );
+
+				loader = new THREE.GLTFLoader();
+				loader.load( "models/jack.glb", function ( gltf ) {
+					console.log(gltf);
+					// https://cdn.jsdelivr.net/gh/joseluismurillorios/
+					const model = gltf.scene.getObjectByName('Jack_Daniel_s_Tennessee_2');
+					console.log(model);
+					model.traverse((o) => {
+						if (o.isMesh) {
+							o.material.metalness = 0.3;
+							o.material.roughness = 0.4;
+						}
+					});
+					createScene( model.geometry, 50, model.material );
+				} );
+
+
+				// scene.add( new THREE.AxesHelper(500) );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.autoClear = false;
+				container.appendChild( renderer.domElement );
+
+				renderer.shadowMap.enabled = true;
+
+				//
+
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+
+				// EVENTS
+
+				window.addEventListener( 'mousemove', onMove, false );
+				window.addEventListener( 'mousedown', onDown, false );
+				window.addEventListener( 'mouseup', onUp, false );
+
+				window.addEventListener( 'touchmove', onMove, false );
+				window.addEventListener( 'touchstart', onDown, false );
+				window.addEventListener( 'touchend', onUp, false );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function createScene( geometry, scale, material ) {
+				mesh = new THREE.Mesh( geometry, material );
+				mesh.rotation.y -= 20;
+				mesh.scale.set( scale, scale, scale );
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+
+				scene.add( mesh );
+
+			}
+
+			//
+
+			function onWindowResize() {
+
+				var width = window.innerWidth;
+				var height = window.innerHeight;
+
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDown(event) {
+				var touched = event.type === 'touchstart';
+				var clientX = touched ? event.touches[0].clientX : event.clientX;
+				var clientY = touched ? event.touches[0].clientY : event.clientY;
+				last = new THREE.Vector2( clientX, clientY );
+				pressed = true;
+			}
+
+			function onUp() {
+				pressed = false;
+			}
+
+			function onMove( event ) {
+				var touched = event.type === 'touchmove';
+				var clientX = touched ? event.touches[0].clientX : event.clientX;
+				var clientY = touched ? event.touches[0].clientY : event.clientY;
+				mouseX = ( clientX - windowHalfX );
+				mouseY = ( clientY - windowHalfY );
+
+				  
+				if( last && pressed ){
+					
+					let rotY = clientX - last.x;
+					let rotX = clientY - last.y;
+					
+					camera.position.applyQuaternion( quaternion.setFromAxisAngle(
+						axisY, Math.PI * 2 * (rotY / innerWidth)
+					));
+					spotLight.position.applyQuaternion( quaternion.setFromAxisAngle(
+						axisY, Math.PI * 2 * (rotY / innerWidth)
+					));
+					
+					camera.position.applyQuaternion( quaternion.setFromAxisAngle(
+						axisX, Math.PI * 2 * (rotX / innerWidth)
+					));
+					spotLight.position.applyQuaternion( quaternion.setFromAxisAngle(
+						axisX, Math.PI * 2 * (rotX / innerWidth)
+					));
+					
+					camera.lookAt( scene.position );
+					
+					last.set( clientX, clientY );
+					
+				}
+				event.preventDefault();
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				targetX = mouseX * .01;
+				targetY = mouseY * .01;
+
+				if ( mesh ) {
+					mesh.rotation.y += 0.005;
+				}
+				cameraY += 0.0001;
+    
+
+				camera.lookAt( scene.position );
+				
+				renderer.clear();
+				renderer.render( scene, camera );
+				renderer.clearDepth();
+
+			}
+
+		</script>
+
+	</body>
+</html>
